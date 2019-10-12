@@ -1,4 +1,4 @@
-package it.gabrieletondi.journey.expecteverything.it.gabrieletondi.journey.toomanycollaborators;
+package it.gabrieletondi.journey.toomanycollaborators;
 
 public class Emoji {
     private final String shortcut;

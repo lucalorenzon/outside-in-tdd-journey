@@ -1,4 +1,4 @@
-package it.gabrieletondi.journey.expecteverything.it.gabrieletondi.journey.toomanycollaborators;
+package it.gabrieletondi.journey.toomanycollaborators;
 
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;

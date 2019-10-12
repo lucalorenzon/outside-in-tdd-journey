@@ -9,8 +9,8 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 
 public class SocialNetworkTest {
-    public static final User A_USER = new User("myUser");
-    public static final LocalDateTime NOW = LocalDateTime.now();
+    private static final User A_USER = new User("myUser");
+    private static final LocalDateTime NOW = LocalDateTime.now();
 
     @Rule
     public final JUnitRuleMockery context = new JUnitRuleMockery();

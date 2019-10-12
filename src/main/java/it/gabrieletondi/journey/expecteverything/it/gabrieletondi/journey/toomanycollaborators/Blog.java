@@ -11,19 +11,22 @@ public class Blog {
     private final BadWordsService badWordsService;
     private final CommentRepository commentRepository;
     private final EmojiDictionary emojiDictionary;
+    private final UrlObfuscatorService urlObfuscatorService;
 
     public Blog(UserRepository userRepository,
                 Log log,
                 BannedUserRepository bannedUserRepository,
                 BadWordsService badWordsService,
                 CommentRepository commentRepository,
-                EmojiDictionary emojiDictionary) {
+                EmojiDictionary emojiDictionary,
+                UrlObfuscatorService urlObfuscatorService) {
         this.userRepository = userRepository;
         this.log = log;
         this.bannedUserRepository = bannedUserRepository;
         this.badWordsService = badWordsService;
         this.commentRepository = commentRepository;
         this.emojiDictionary = emojiDictionary;
+        this.urlObfuscatorService = urlObfuscatorService;
     }
 
     public void postComment(String username, String password, String comment) {
@@ -50,7 +53,7 @@ public class Blog {
             log.info(format("wrong password for user with username %s", username));
             return null;
         }
-        
+
         return user;
     }
 
@@ -73,14 +76,20 @@ public class Blog {
     }
 
     private String formatComment(String comment) {
-        String formattedComment = comment;
+        return replaceEmojis(obfuscateUrls(comment));
+    }
 
+    private String obfuscateUrls(String comment) {
+        return urlObfuscatorService.obfuscateAllUrlsIn(comment);
+    }
+
+    private String replaceEmojis(String comment) {
         List<Emoji> emojis = emojiDictionary.allEmojis();
 
         for (Emoji emoji : emojis) {
-            formattedComment = formattedComment.replace(emoji.getShortcut(), emoji.getValue());
+            comment = comment.replace(emoji.getShortcut(), emoji.getValue());
         }
 
-        return formattedComment;
+        return comment;
     }
 }

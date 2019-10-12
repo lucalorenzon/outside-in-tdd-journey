@@ -15,15 +15,18 @@ public class BlogTest {
     private final Log log = context.mock(Log.class);
     private final BannedUserRepository bannedUserRepository = context.mock(BannedUserRepository.class);
     private final BadWordsService badWordsService = context.mock(BadWordsService.class);
+    private final UrlObfuscatorService urlObfuscatorService = context.mock(UrlObfuscatorService.class);
     private final EmojiDictionary emojiDictionary = context.mock(EmojiDictionary.class);
     private final CommentRepository commentRepository = context.mock(CommentRepository.class);
 
-    private final Blog blog = new Blog(userRepository,
+    private final Blog blog = new Blog(
+            userRepository,
             log,
             bannedUserRepository,
             badWordsService,
             commentRepository,
-            emojiDictionary);
+            emojiDictionary,
+            urlObfuscatorService);
 
     @Test
     public void wrongPassword() {
@@ -71,7 +74,7 @@ public class BlogTest {
     }
 
     @Test
-    public void authorizedUser_messageWithEmoji() {
+    public void authorizedUser_messageWithEmojiAndUrl() {
         context.checking(new Expectations(){{
             allowing(userRepository).findByUsername("username");
             will(returnValue(new User("username", "password")));
@@ -85,12 +88,15 @@ public class BlogTest {
             allowing(emojiDictionary).allEmojis();
             will(returnValue(asList(new Emoji(":)", "\uD83D\uDE00"))));
 
+            allowing(urlObfuscatorService).obfuscateAllUrlsIn("this is a smile :) and this is an url: https://www.connexxo.it");
+            will(returnValue("this is a smile :) and this is an url: OBFUSCATED_URL"));
+
             oneOf(commentRepository).store(new Comment(
                     new User("username", "password"),
-                    "this is a smile \uD83D\uDE00"
+                    "this is a smile \uD83D\uDE00 and this is an url: OBFUSCATED_URL"
             ));
         }});
 
-        blog.postComment("username", "password", "this is a smile :)");
+        blog.postComment("username", "password", "this is a smile :) and this is an url: https://www.connexxo.it");
     }
 }

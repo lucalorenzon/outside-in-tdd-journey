@@ -1,5 +1,5 @@
 package it.gabrieletondi.journey.mockreturnsmock;
 
 public interface TaxService {
-    TaxStrategy taxStrategyFor(Product product);
+    Money calculateTaxFor(Product product);
 }

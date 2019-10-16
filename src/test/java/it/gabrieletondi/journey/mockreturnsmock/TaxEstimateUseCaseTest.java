@@ -13,8 +13,6 @@ public class TaxEstimateUseCaseTest {
     public final JUnitRuleMockery context = new JUnitRuleMockery();
 
     private final TaxService taxService = context.mock(TaxService.class);
-    private final TaxStrategy taxStrategy = context.mock(TaxStrategy.class);
-    private final Tax tax = context.mock(Tax.class);
     private final ProductRepository productRepository = context.mock(ProductRepository.class);
 
     private final TaxEstimateUseCase taxEstimateUseCase = new TaxEstimateUseCase(taxService, productRepository);
@@ -28,13 +26,7 @@ public class TaxEstimateUseCaseTest {
             allowing(productRepository).findById(999);
             will(returnValue(PRODUCT));
 
-            allowing(taxService).taxStrategyFor(PRODUCT);
-            will(returnValue(taxStrategy));
-
-            allowing(taxStrategy).taxFor(PRODUCT);
-            will(returnValue(tax));
-
-            allowing(tax).applyOn(PRODUCT_PRICE);
+            allowing(taxService).calculateTaxFor(PRODUCT);
             will(returnValue(Money.euro(20)));
         }});
 

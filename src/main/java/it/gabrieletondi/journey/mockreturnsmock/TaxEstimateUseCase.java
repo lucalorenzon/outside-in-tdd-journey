@@ -11,9 +11,6 @@ public class TaxEstimateUseCase {
 
     public Money estimateForProductWithId(int productId) {
         Product product = productRepository.findById(productId);
-        TaxStrategy strategy = taxService.taxStrategyFor(product);
-        Tax tax = strategy.taxFor(product);
-
-        return tax.applyOn(product.getPrice());
+        return taxService.calculateTaxFor(product);
     }
 }

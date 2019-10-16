@@ -15,6 +15,6 @@ public class InMemoryProductCatalog implements ProductCatalog {
         return products.stream()
                 .filter(product -> product.hasBarcode(barcode))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(ProductNotFoundException::new);
     }
 }

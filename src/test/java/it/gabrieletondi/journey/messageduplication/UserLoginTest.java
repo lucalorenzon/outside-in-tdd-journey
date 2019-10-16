@@ -12,16 +12,9 @@ public class UserLoginTest {
     public final JUnitRuleMockery context = new JUnitRuleMockery();
 
     private final UserRepository userRepository = context.mock(UserRepository.class);
-    private final UserAudit userAudit = context.mock(UserAudit.class);
-    private final UserMailService userMailService = context.mock(UserMailService.class);
-    private final UserBusinessMetrics userBusinessMetrics = context.mock(UserBusinessMetrics.class);
-    private final Session session = context.mock(Session.class);
+    private final UserLoginObserver observer = context.mock(UserLoginObserver.class);
 
-    private UserLogin userLogin = new UserLogin(userRepository,
-            userMailService,
-            userAudit,
-            userBusinessMetrics,
-            session);
+    private UserLogin userLogin = new UserLogin(userRepository, observer);
 
     @Test
     public void loginFailed() {
@@ -29,11 +22,8 @@ public class UserLoginTest {
             allowing(userRepository).userWith("username", "wrong password");
             will(returnValue(null));
 
-            oneOf(userAudit).registerInvalidLoginFor("username");
-            oneOf(userMailService).notifyTentativeAccessFor("username");
-            oneOf(userBusinessMetrics).incrementLoginErrorMetric();
-
-            never(session).storeLoggedInUser(with(any(User.class)));
+            oneOf(observer).onLoginFailedForUsername("username");
+            never(observer).onUserLoggedIn(with(any(User.class)));
         }});
 
         userLogin.execute("username", "wrong password");
@@ -45,9 +35,7 @@ public class UserLoginTest {
             allowing(userRepository).userWith("username", "wrong password");
             will(returnValue(USER));
 
-            oneOf(userAudit).registerValidUserLoginFor("username");
-            oneOf(userBusinessMetrics).incrementSuccessfulLoginMetric();
-            oneOf(session).storeLoggedInUser(USER);
+            oneOf(observer).onUserLoggedIn(USER);
         }});
 
         userLogin.execute("username", "wrong password");

@@ -20,9 +20,7 @@ public class CarTest {
             allowing(engine).currentRpm();
             will(returnValue(5000));
 
-            oneOf(transmission).engageClutch();
-            oneOf(transmission).selectNextGear();
-            oneOf(transmission).disengageClutch();
+            oneOf(transmission).shiftUp();
         }});
 
         car.accelerate();

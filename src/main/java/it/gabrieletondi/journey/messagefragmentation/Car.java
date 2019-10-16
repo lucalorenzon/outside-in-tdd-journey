@@ -11,9 +11,7 @@ public class Car {
 
     public void accelerate() {
         if (engine.currentRpm() >= 5000) {
-            transmission.engageClutch();
-            transmission.selectNextGear();
-            transmission.disengageClutch();
+            transmission.shiftUp();
         }
     }
 }

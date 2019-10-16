@@ -1,95 +1,56 @@
 package it.gabrieletondi.journey.toomanycollaborators;
 
-import java.util.List;
-
 import static java.lang.String.format;
 
 public class Blog {
-    private final UserRepository userRepository;
     private final Log log;
-    private final BannedUserRepository bannedUserRepository;
-    private final BadWordsService badWordsService;
     private final CommentRepository commentRepository;
-    private final EmojiDictionary emojiDictionary;
-    private final UrlObfuscatorService urlObfuscatorService;
+    private final UserLoginService userLoginService;
+    private final MessageSanitizerService messageSanitizerService;
 
-    public Blog(UserRepository userRepository,
-                Log log,
-                BannedUserRepository bannedUserRepository,
-                BadWordsService badWordsService,
+    public Blog(Log log,
                 CommentRepository commentRepository,
-                EmojiDictionary emojiDictionary,
-                UrlObfuscatorService urlObfuscatorService) {
-        this.userRepository = userRepository;
+                UserLoginService userLoginService,
+                MessageSanitizerService messageSanitizerService) {
         this.log = log;
-        this.bannedUserRepository = bannedUserRepository;
-        this.badWordsService = badWordsService;
         this.commentRepository = commentRepository;
-        this.emojiDictionary = emojiDictionary;
-        this.urlObfuscatorService = urlObfuscatorService;
+        this.userLoginService = userLoginService;
+        this.messageSanitizerService = messageSanitizerService;
     }
 
     public void postComment(String username, String password, String comment) {
         User user = loginUser(username, password);
-        if (user == null) return;
-
-        if (isUserBanned(username)) {
-            log.info(format("banned user %s tried to comment", username));
+        if (user == null) {
             return;
         }
 
-        if (doesCommentContainsBadWords(comment)) {
+        String formattedMessage = this.formatMessage(comment);
+        if (formattedMessage == null) {
+            return;
+        }
+
+        commentRepository.store(new Comment(user, formattedMessage));
+    }
+
+    private String formatMessage(String comment) {
+        try {
+            return messageSanitizerService.sanitize(comment);
+        } catch (MessageContainsBadWordsException e) {
             log.info(format("comment [%s] contains bad words", comment));
-            return;
+            return null;
         }
-
-        commentRepository.store(new Comment(user, formatComment(comment)));
     }
 
     private User loginUser(String username, String password) {
-        User user = userRepository.findByUsername(username);
-
-        if (!user.getPassword().equals(password)) {
+        try {
+            return userLoginService.loginUser(username, password);
+        } catch (UserWrongPasswordException e) {
             log.info(format("wrong password for user with username %s", username));
             return null;
+        } catch (UserBannedException e) {
+            log.info(format("banned user %s tried to comment", username));
+            return null;
         }
-
-        return user;
     }
 
-    private boolean isUserBanned(String username) {
-        List<String> bannedUsers = bannedUserRepository.listBannedUsers();
-
-        return bannedUsers.contains(username);
-    }
-
-    private boolean doesCommentContainsBadWords(String comment) {
-        List<String> badWords = badWordsService.listBadWords();
-
-        for (String badWord : badWords) {
-            if (comment.contains(badWord)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private String formatComment(String comment) {
-        return replaceEmojis(obfuscateUrls(comment));
-    }
-
-    private String obfuscateUrls(String comment) {
-        return urlObfuscatorService.obfuscateAllUrlsIn(comment);
-    }
-
-    private String replaceEmojis(String comment) {
-        List<Emoji> emojis = emojiDictionary.allEmojis();
-
-        for (Emoji emoji : emojis) {
-            comment = comment.replace(emoji.getShortcut(), emoji.getValue());
-        }
-
-        return comment;
-    }
 }

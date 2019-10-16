@@ -12,8 +12,6 @@ public class TaxCalculationTest {
     public final JUnitRuleMockery context = new JUnitRuleMockery();
 
     private final ProductRepository productRepository = context.mock(ProductRepository.class);
-    private final Product product = context.mock(Product.class);
-    private final Tax tax = context.mock(Tax.class);
 
     private final TaxCalculation taxCalculation = new TaxCalculation(productRepository);
 
@@ -21,16 +19,7 @@ public class TaxCalculationTest {
     public void taxForFoodProduct() {
         context.checking(new Expectations(){{
             allowing(productRepository).findById("productId");
-            will(returnValue(product));
-
-            allowing(product).getTax();
-            will(returnValue(tax));
-
-            allowing(product).getPrice();
-            will(returnValue(10000));
-
-            allowing(tax).getPercentage();
-            will(returnValue(10));
+            will(returnValue(new Product(new Tax(10), 10000)));
         }});
 
         assertEquals(1000, taxCalculation.taxFor("productId"));

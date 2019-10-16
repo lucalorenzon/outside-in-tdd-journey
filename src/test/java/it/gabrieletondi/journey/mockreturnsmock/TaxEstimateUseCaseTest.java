@@ -15,8 +15,9 @@ public class TaxEstimateUseCaseTest {
     private final TaxService taxService = context.mock(TaxService.class);
     private final TaxStrategy taxStrategy = context.mock(TaxStrategy.class);
     private final Tax tax = context.mock(Tax.class);
+    private final ProductRepository productRepository = context.mock(ProductRepository.class);
 
-    private final TaxEstimateUseCase taxEstimateUseCase = new TaxEstimateUseCase(taxService);
+    private final TaxEstimateUseCase taxEstimateUseCase = new TaxEstimateUseCase(taxService, productRepository);
 
     private static final Money PRODUCT_PRICE = Money.euro(120);
     private static final FoodProduct PRODUCT = new FoodProduct(PRODUCT_PRICE);
@@ -24,6 +25,9 @@ public class TaxEstimateUseCaseTest {
     @Test
     public void estimatesTaxes() {
         context.checking(new Expectations(){{
+            allowing(productRepository).findById(999);
+            will(returnValue(PRODUCT));
+
             allowing(taxService).taxStrategyFor(PRODUCT);
             will(returnValue(taxStrategy));
 
@@ -34,7 +38,7 @@ public class TaxEstimateUseCaseTest {
             will(returnValue(Money.euro(20)));
         }});
 
-        Money estimatedTax = taxEstimateUseCase.estimateFor(PRODUCT);
+        Money estimatedTax = taxEstimateUseCase.estimateForProductWithId(999);
 
         assertEquals(Money.euro(20), estimatedTax);
     }

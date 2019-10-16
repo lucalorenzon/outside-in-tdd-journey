@@ -1,4 +1,4 @@
-package it.gabrieletondi.journey.expecteverything.fixed;
+package it.gabrieletondi.journey.expecteverything;
 
 import it.gabrieletondi.journey.expecteverything.*;
 import org.jmock.Expectations;
